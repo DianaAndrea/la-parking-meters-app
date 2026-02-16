@@ -1,30 +1,25 @@
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
+const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+  next();
+});
+app.use(express.static(path.join(__dirname, 'public')));
 
 // LA City Parking API Endpoints
 const LA_PARKING_OCCUPANCY_API = 'https://data.lacity.org/resource/e7h6-4a3e.json';
 const LA_PARKING_INVENTORY_API = 'https://data.lacity.org/resource/s49e-q6j2.json';
 
-// Health check endpoint
 app.get('/', (req, res) => {
-  res.json({ 
-    message: 'LA Parking API Server',
-    status: 'running',
-    endpoints: {
-      occupancy: '/api/parking/occupancy',
-      inventory: '/api/parking/inventory',
-      available: '/api/parking/available',
-      nearby: '/api/parking/nearby?lat=34.0522&lon=-118.2437&radius=500'
-    }
-  });
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Get real-time parking occupancy data
@@ -152,9 +147,6 @@ app.get('/api/parking/meter/:meterId', async (req, res) => {
   }
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚗 LA Parking API Server running on port ${PORT}`);
-  console.log(`📍 Test it: http://localhost:${PORT}`);
-  console.log(`📊 Available spots: http://localhost:${PORT}/api/parking/available`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`LA Parking API Server running on port ${PORT}`);
 });
